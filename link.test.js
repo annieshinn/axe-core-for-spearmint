@@ -1,75 +1,53 @@
-// import React from 'react';
-// import axe from 'axe-core';
-// import { mountToDoc } from './test-helpers';
+const axe = require('axe-core');
+const regeneratorRuntime = require('regenerator-runtime');
 
-// import Link from './link';
+const path = require('path');
+const fs = require('fs');
+const html = fs.readFileSync(path.resolve(__dirname, './index2.html'), 'utf8');
 
-// test('Link has no axe violations', done => {
-
-//   // expect([1, 2]).not.toHaveLength(2);
-//   // done();
-
-//   const linkComponent = mountToDoc(
-//     <Link page="http://www.axe-core.org">axe website</Link>
-//   );
-//   const linkNode = linkComponent.getDOMNode();
-
-//   const config = {
-//     // preload: {
-//     //   timeout: 60000,
-//     // },
-//     rules: {
-//       'color-contrast': { enabled: false },
-//       'link-in-text-block': { enabled: false }
-//     }
-//   };
-//   // jest.setTimeout(50000)
-
-//   axe.run(linkNode, config, (err, { violations }) => {
-//     console.log('-----1-----');
-//     expect(err).toBe(null);
-//     console.log('-----2-----');
-//     // expect(violations).toHaveLength(0);
-//     console.log('-----3-----');
-//     expect([1, 2]).not.toHaveLength(2);
-//     console.log('-----4-----');
-//     done();
-//   });
-// });
-
-
-const regeneratorRuntime = require("regenerator-runtime");
-
-import axe from 'axe-core'
-
-const isA11y = ((html) =>
-  new Promise((resolve, reject) => {
-    axe.run(html, {}, (err, result={}) => {
-      const { violations=[] } = result
-
-      if (err) {
-        reject(err)
-      } else if (violations.length > 0) {
-        reject(violations)
-      } else {
-        // Uncomment to view incomplete/unavailable tests & why
-        //console.log(result.incomplete)
-        resolve(true)
+describe('Evaluate axe-core violations', () => {
+  it('html file has no axe violations', done => {
+    // exclude tests that are incompatible
+    const config = {
+      rules: {
+        'color-contrast': { enabled: false },
+        'link-in-text-block': { enabled: false }
       }
-    })
-  })
-)
+    };
 
-test('bad form', async () => {
-  const wrap = document.createElement('div')
-  wrap.innerHTML = `
-    <form>
-      <div>Enter your name</div>
-      <input type="text" />
-      <button type="submit">Submit</button>
-    </form>
-  `
-  document.body.appendChild(wrap)
+    // get language tag from imported html file and assign to jsdom document
+    const langTag = html.match(/<html lang="(.*)"/);
+    if (langTag) document.documentElement.lang = langTag[1];
+    document.documentElement.innerHTML = html.toString();
 
-  expect(await isA11y(wrap)).toEqual(true)
-})
+    axe.run(config, async (err, { violations }) => {
+      if (err) {
+        console.log('err: ', err);
+        done();
+      }
+
+      if (violations.length === 0) {
+        console.log('Congrats! Keep up the good work, you have 0 known violations!');
+      } else {
+        violations.forEach(axeViolation => {
+          console.log('-------');
+          const whereItFailed = axeViolation.nodes[0].html;
+          // const failureSummary = axeViolation.nodes[0].failureSummary;
+    
+          const { description, help, helpUrl } = axeViolation;
+
+          console.log('TEST DESCRIPTION: ', description,
+            '\nISSUE: ', help,
+            '\nMORE INFO: ', helpUrl,
+            '\nWHERE IT FAILED: ', whereItFailed,
+            // '\nhow to fix: ', failureSummary
+          );
+        });
+      }
+
+      expect(err).toBe(null);
+      expect(violations).toHaveLength(0);
+      done();
+    });
+  });
+});
