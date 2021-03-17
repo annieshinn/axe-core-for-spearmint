@@ -3,7 +3,7 @@ const regeneratorRuntime = require('regenerator-runtime');
 
 const path = require('path');
 const fs = require('fs');
-const html = fs.readFileSync(path.resolve(__dirname, './index2.html'), 'utf8');
+const html = fs.readFileSync(path.resolve(__dirname, './index.html'), 'utf8');
 
 describe('Evaluate axe-core violations', () => {
   it('html file has no axe violations', done => {
@@ -30,13 +30,12 @@ describe('Evaluate axe-core violations', () => {
         console.log('Congrats! Keep up the good work, you have 0 known violations!');
       } else {
         violations.forEach(axeViolation => {
-          console.log('-------');
-          const whereItFailed = axeViolation.nodes[0].html;
-          // const failureSummary = axeViolation.nodes[0].failureSummary;
+          const whereItFailed = axeViolation.nodes.map(node => node.html)
     
           const { description, help, helpUrl } = axeViolation;
 
-          console.log('TEST DESCRIPTION: ', description,
+          console.log('---------',
+            '\nTEST DESCRIPTION: ', description,
             '\nISSUE: ', help,
             '\nMORE INFO: ', helpUrl,
             '\nWHERE IT FAILED: ', whereItFailed,
