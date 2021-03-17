@@ -30,7 +30,8 @@ describe('Evaluate axe-core violations', () => {
         console.log('Congrats! Keep up the good work, you have 0 known violations!');
       } else {
         violations.forEach(axeViolation => {
-          const whereItFailed = axeViolation.nodes.map(node => node.html)
+          const whereItFailed = axeViolation.nodes.map(node => node.html);
+          // const failureSummary = axeViolation.nodes.map(node => node.failureSummary);
     
           const { description, help, helpUrl } = axeViolation;
 
